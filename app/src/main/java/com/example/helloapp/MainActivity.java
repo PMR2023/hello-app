@@ -3,7 +3,11 @@ package com.example.helloapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.app.SearchManager;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String CAT = "PMR";
     private Button btnOK;
+    private Button btnSearch;
     private EditText txtPseudo;
 
     @Override
@@ -26,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         alerter("onCreate");
         btnOK = findViewById(R.id.btnOK);
         txtPseudo = findViewById(R.id.txtPseudo);
+        btnSearch = findViewById(R.id.btnSearch);
 
         /*btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -35,12 +41,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });*/
         btnOK.setOnClickListener(this);
         txtPseudo.setOnClickListener(this);
+        btnSearch.setOnClickListener(this);
+
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         alerter("onStart");
+        @SuppressWarnings("deprecation") SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.getBoolean("remember",false)) {
+            txtPseudo.setText(prefs.getString("login",""));
+
+        }
     }
 
     private void alerter(String s) {
@@ -57,11 +71,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
+        alerter("ici");
         if (view.getId() == R.id.btnOK) {
-                alerter("click click click");
-        }
-        if (view.getId() == R.id.txtPseudo) {
+            if (txtPseudo.getText().toString().isEmpty()) return;
+            Intent toSecond = new Intent(this,SecondActivity.class);
+            Bundle bdlData = new Bundle();
+            bdlData.putString("nom", txtPseudo.getText().toString());
+            toSecond.putExtras(bdlData);
+            startActivity(toSecond);
+        } else if (view.getId() == R.id.txtPseudo) {
             alerter("saisir votre nom");
+        } else if (view.getId() == R.id.btnSearch) {
+            String query = txtPseudo.getText().toString();
+            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+            intent.putExtra(SearchManager.QUERY, query);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            }
+
         }
 
     }
@@ -77,7 +104,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
-            alerter("préférences");
+            alerter("preferences");
+            Intent toPref= new Intent(this,PrefActivity.class);
+            startActivity(toPref);
+
+        } else if (id == R.id.action_account) {
+            alerter("compte");
         }
 
         return super.onOptionsItemSelected(item);
